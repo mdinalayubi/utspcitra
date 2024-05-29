@@ -1,0 +1,71 @@
+import cv2
+import numpy as np
+from matplotlib import pyplot as plt
+
+def adjust_brightness_contrast(image, brightness=0, contrast=0):
+    """
+    Menyesuaikan kecerahan dan kontras gambar.
+
+    :param image: Input image (numpy array)
+    :param brightness: Nilai kecerahan (-255 hingga 255)
+    :param contrast: Nilai kontras (-127 hingga 127)
+    :return: Gambar yang disesuaikan
+    """
+    if brightness != 0:
+        if brightness > 0:
+            shadow = brightness
+            highlight = 255
+        else:
+            shadow = 0
+            highlight = 255 + brightness
+        alpha_b = (highlight - shadow) / 255
+        gamma_b = shadow
+
+        image = cv2.addWeighted(image, alpha_b, image, 0, gamma_b)
+
+    if contrast != 0:
+        f = 131 * (contrast + 127) / (127 * (131 - contrast))
+        alpha_c = f
+        gamma_c = 127 * (1 - f)
+
+        image = cv2.addWeighted(image, alpha_c, image, 0, gamma_c)
+
+    return image
+
+def read_image(image_file, gray_scale=False):
+    image_src = cv2.imread(image_file)
+    if image_src is None:
+        raise FileNotFoundError(f"File {image_file} tidak ditemukan.")
+    if gray_scale:
+        image_src = cv2.cvtColor(image_src, cv2.COLOR_BGR2GRAY)
+    else:
+        image_src = cv2.cvtColor(image_src, cv2.COLOR_BGR2RGB)
+    return image_src
+
+def plot_images(original, modified, title1="Original", title2="Modified", cmap_val=None):
+    fig = plt.figure(figsize=(10, 10))
+
+    ax1 = fig.add_subplot(1, 2, 1)
+    ax1.axis("off")
+    ax1.title.set_text(title1)
+    ax1.imshow(original, cmap=cmap_val)
+
+    ax2 = fig.add_subplot(1, 2, 2)
+    ax2.axis("off")
+    ax2.title.set_text(title2)
+    ax2.imshow(modified, cmap=cmap_val)
+
+    plt.show()
+
+# Contoh penggunaan fungsi
+image_file = 'd:/mdinalayubi/foto/ayubi1.jpg'
+image = read_image(image_file)
+adjusted_image = adjust_brightness_contrast(image, brightness=50, contrast=30)
+
+plot_images(image, adjusted_image, title1="Original Image", title2="Brightness & Contrast Adjusted")
+
+# Contoh penggunaan dengan gambar grayscale
+image_gray = read_image(image_file, gray_scale=True)
+adjusted_image_gray = adjust_brightness_contrast(image_gray, brightness=50, contrast=30)
+
+plot_images(image_gray, adjusted_image_gray, title1="Original Grayscale Image", title2="Brightness & Contrast Adjusted", cmap_val='gray')
